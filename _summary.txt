@@ -1,0 +1,23 @@
+Traffic Signs Image Extraction — v0 (2048px web sample, DOCX fallback)
+
+Source DOCX: Element Catalogue_ Traffic Signs (First version).docx
+Total output PNGs: 1182
+Unique MUTCD codes: 1126
+Categories (folders): 8
+Images from Notes column: 28
+Web replacements applied (Wikimedia): 5 (downscaled so max dimension = 2048px)
+
+Naming rules:
+- First occurrence: CODE.png
+- Additional occurrences: CODE__2.png, CODE__3.png, ... (only when a code appears more than once)
+
+Background / border handling:
+- For many non-rectangular signs, the outer background was flood-filled to transparent and trimmed.
+- Rectangular signs often remain rectangular (expected) because the corner/background color matches the sign face.
+
+5 images to manually QC (very small DOCX sources, likely need web replacement):
+- D9-16aP  (CONSTRUCTION_INFORMATION_SIGNS/D9-16aP.png)  [82x82]
+- D9-13bP  (CONSTRUCTION_INFORMATION_SIGNS/D9-13bP.png)  [82x42]
+- D9-11bP  (CONSTRUCTION_INFORMATION_SIGNS/D9-11bP.png)  [82x62]
+- D9-13dP  (CONSTRUCTION_INFORMATION_SIGNS/D9-13dP.png)  [82x42]
+- D9-13cP  (CONSTRUCTION_INFORMATION_SIGNS/D9-13cP.png)  [82x62]

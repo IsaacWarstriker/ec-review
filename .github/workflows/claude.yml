@@ -1,0 +1,28 @@
+name: Claude Code
+
+# Tag @claude in an issue or PR comment to get changes as a pull request.
+# Requires repo secret ANTHROPIC_API_KEY (Settings → Secrets and variables → Actions).
+# Setup shortcut: run `/install-github-app` inside Claude Code in your terminal.
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  issues:
+    types: [opened, assigned]
+
+jobs:
+  claude:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
