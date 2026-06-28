@@ -82,8 +82,6 @@
   .final{padding:9px 12px 11px;margin-top:auto}
   .finalhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px}
   .finalhdr .lbl{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
-  .agree{font-family:var(--mono);font-size:9px;font-weight:700;padding:3px 8px;border-radius:5px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
-  .agree:hover{border-color:var(--ok);color:var(--ok)}
   .verds{display:flex;gap:5px}
   .vb{flex:1;font-family:var(--mono);font-size:9.5px;font-weight:700;padding:7px 0;border:1px solid var(--line2);border-radius:6px;background:#FCFCFD;color:var(--muted);cursor:pointer;text-align:center}
   .vb:hover{border-color:var(--faint)}
@@ -234,12 +232,12 @@ function cardHTML(r){
       <div style="min-width:0"><div class="code">${esc(r.c)}</div><div class="dsc">${esc(r.d)}</div></div>
       <span class="hqtag ${r.hq}">${r.hq==='hq'?'HQ':r.hq==='none'?'NO IMG':'docx'}</span></div>
     <div class="panes">
-      <div class="pane"><div class="plabel">Word (source)</div><div class="imgbox"><img data-img="w" alt="word"><span class="ph" data-ph hidden>—</span></div></div>
+      <div class="pane"><div class="plabel">Word (source)</div><div class="imgbox"><img data-img="w" alt="word"><span class="ph" data-ph hidden>—</span><span class="resb" data-wres hidden></span></div></div>
       <div class="pane"><div class="plabel">Catalogue (folder)</div><div class="imgbox"><img data-img="f" alt="folder"><span class="ph" data-ph hidden>no image</span><span class="resb" data-res hidden></span></div></div>
     </div>
     <div class="fa"><div class="r1"><span class="falabel">first pass</span><span class="fachip ${r.fa}">${FA_LABEL[r.fa]||r.fa}</span></div><div class="reasons">${esc(r.rs)}</div></div>
     <div class="final">
-      <div class="finalhdr"><span class="lbl">Final verdict</span><button class="agree" data-agree title="Set to first-pass verdict">agree ↧</button></div>
+      <div class="finalhdr"><span class="lbl">Final verdict</span></div>
       <div class="verds">
         <button class="vb ok ${v==='ok'?'on':''}" data-v="ok">OK</button>
         <button class="vb wrong ${v==='wrong'?'on':''}" data-v="wrong">WRONG</button>
@@ -254,8 +252,10 @@ function cardHTML(r){
 function wire(card){
   const r=DATA.find(x=>x.id===card.dataset.id);
   const wimg=card.querySelector('[data-img="w"]'), fimg=card.querySelector('[data-img="f"]');
-  const phs=card.querySelectorAll('[data-ph]'), res=card.querySelector('[data-res]');
-  let tw=false; wimg.onerror=()=>{ if(!tw&&WORDT[r.id]){tw=true;wimg.src=WORDT[r.id];return;} wimg.style.display="none";phs[0].hidden=false; };
+  const phs=card.querySelectorAll('[data-ph]'), res=card.querySelector('[data-res]'), wres=card.querySelector('[data-wres]');
+  let tw=false;
+  wimg.onload=()=>{ if(wimg.naturalWidth){wres.hidden=false;wres.textContent=wimg.naturalWidth+"px";} };
+  wimg.onerror=()=>{ if(!tw&&WORDT[r.id]){tw=true;wimg.src=WORDT[r.id];return;} wimg.style.display="none";phs[0].hidden=false; };
   wimg.src=r.wi||"";
   if(r.fi){ let tf=false;
     fimg.onload=()=>{ if(fimg.naturalWidth){res.hidden=false;res.textContent=fimg.naturalWidth+"px";res.classList.toggle("low",fimg.naturalWidth<240);} };
@@ -263,7 +263,6 @@ function wire(card){
     fimg.src=r.fi; if(!folderPresent){const p=new Image();p.onload=()=>{if(!folderPresent){folderPresent=true;}};p.src=r.fi;}
   } else { fimg.style.display="none"; phs[1].hidden=false; }
   card.querySelectorAll(".vb").forEach(b=>b.onclick=()=>setV(r.id,b.dataset.v));
-  card.querySelector("[data-agree]").onclick=()=>{ const m={ok:"ok",lq:"lowq",none:"none"}; if(m[r.fa]) setV(r.id,m[r.fa]); };
   card.querySelector("[data-note]").addEventListener("input",e=>{ if(!verdicts[r.id])verdicts[r.id]={final_verdict:"",reviewer:reviewerName(),reviewed_at:new Date().toISOString()}; verdicts[r.id].note=e.target.value; });
 }
 function render(){
