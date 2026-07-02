@@ -85,6 +85,7 @@
   .fachip{font-family:var(--mono);font-size:9.5px;font-weight:700;padding:3px 8px;border-radius:5px}
   .fachip.ok{background:var(--okbg);color:var(--ok)}.fachip.lq{background:var(--lowqbg);color:var(--lowq)}.fachip.none{background:var(--nonebg);color:var(--none)}
   .falabel{font-family:var(--mono);font-size:9px;color:var(--faint)}
+  .falive{font-family:var(--mono);font-size:7.5px;font-weight:700;letter-spacing:.06em;color:var(--faint);border:1px solid var(--line);border-radius:4px;padding:1px 4px;text-transform:uppercase}
   .reasons{font-family:var(--mono);font-size:8.5px;color:var(--muted);margin-top:5px;line-height:1.5}
 
   .final{padding:9px 12px 11px;margin-top:auto}
@@ -271,7 +272,7 @@ function cardHTML(r){
       <div class="pane"><div class="plabel">Word (source)</div><div class="imgbox"><img data-img="w" alt="word"><span class="ph" data-ph hidden>—</span><span class="resb" data-wres hidden></span></div></div>
       <div class="pane"><div class="plabel">Catalogue (folder)</div><div class="imgbox"><img data-img="f" alt="folder"><span class="newtag" data-newtag hidden>newer edition available</span><button class="nvtoggle" data-nvtoggle hidden>newer edition ▶</button><span class="ph" data-ph hidden>no image</span><span class="resb" data-res hidden></span></div></div>
     </div>
-    <div class="fa"><div class="r1"><span class="falabel">first pass</span><span class="fachip ${r.fa}">${FA_LABEL[r.fa]||r.fa}</span></div><div class="reasons">${esc(r.rs)}</div></div>
+    <div class="fa"><div class="r1"><span class="falabel">first pass</span><span class="fachip ${r.fa}" data-fachip>${FA_LABEL[r.fa]||r.fa}</span><span class="falive" data-flive hidden>live</span></div><div class="reasons" data-reasons>${esc(r.rs)}</div></div>
     <div class="final">
       <div class="finalhdr"><span class="lbl">Final verdict</span></div>
       <div class="verds">
@@ -299,10 +300,18 @@ function wire(card){
   const newerSrc = r.fi ? ("_NEW_VERSIONS/"+r.fi.split("/").pop()) : "";
   const newtag=card.querySelector("[data-newtag]"), toggle=card.querySelector("[data-nvtoggle]");
   let showingNewer=false;
-  fimg.onload=()=>{ if(fimg.naturalWidth){res.hidden=false;res.textContent=(showingNewer?"new ":"")+fimg.naturalWidth+"px";res.classList.toggle("low",!showingNewer&&fimg.naturalWidth<240);} };
+  const fachip=card.querySelector("[data-fachip]"), reasonsEl=card.querySelector("[data-reasons]"), flive=card.querySelector("[data-flive]");
+  const LOWRES=240;
+  function setFA(fa,text){ r.fa=fa; if(fachip){fachip.className="fachip "+fa; fachip.textContent=FA_LABEL[fa]||fa;} if(reasonsEl&&text!=null)reasonsEl.textContent=text; if(flive)flive.hidden=false; scheduleCounts(); }
+  fimg.onload=()=>{ if(fimg.naturalWidth){
+      res.hidden=false; res.textContent=(showingNewer?"new ":"")+fimg.naturalWidth+"px"; res.classList.toggle("low",!showingNewer&&fimg.naturalWidth<LOWRES);
+      if(!showingNewer){ // first pass is judged on the BASELINE image actually in the folder
+        const lo=fimg.naturalWidth<LOWRES;
+        setFA(lo?"lq":"ok", (lo?"low-res · ":"high-res · ")+fimg.naturalWidth+"×"+fimg.naturalHeight+"px"+(r.hq==="docx"?" · docx baseline":""));
+      } } };
   let tf=false; fimg.onerror=()=>{
     if(showingNewer){ showingNewer=false; if(toggle)toggle.textContent="newer edition ▶"; if(newtag){newtag.textContent="newer edition missing";} fimg.src=base; return; }
-    if(!tf&&FOLDT[r.fi]){tf=true;fimg.src=FOLDT[r.fi];return;} fimg.style.display="none"; if(phs[1]) phs[1].hidden=false; };
+    if(!tf&&FOLDT[r.fi]){tf=true;fimg.src=FOLDT[r.fi];return;} fimg.style.display="none"; if(phs[1]) phs[1].hidden=false; setFA("none","no catalogue image in folder"); };
   fimg.src = base;
   if(r.newver && newerSrc){
     card.classList.add("hasnew"); if(newtag)newtag.hidden=false; if(toggle)toggle.hidden=false;
@@ -346,6 +355,8 @@ document.getElementById("acceptOk").onclick=()=>{
   render(); counts();
 };
 
+let _countsTimer=null;
+function scheduleCounts(){ clearTimeout(_countsTimer); _countsTimer=setTimeout(counts,250); }
 function counts(){
   const t={ok:0,lq:0,none:0}; DATA.forEach(r=>t[r.fa]=(t[r.fa]||0)+1);
   document.querySelectorAll("#faseg button").forEach(b=>{const k=b.dataset.fa;b.querySelector(".ct").textContent=k==="all"?DATA.length:(t[k]||0);});
